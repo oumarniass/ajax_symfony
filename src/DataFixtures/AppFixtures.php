@@ -3,6 +3,7 @@
 namespace App\DataFixtures;
 
 use App\Entity\Post;
+use App\Entity\PostLike;
 use App\Entity\User;
 use Doctrine\Bundle\FixturesBundle\Fixture;
 use Doctrine\Common\Persistence\ObjectManager;
@@ -25,6 +26,7 @@ class AppFixtures extends Fixture
 
     public function load(ObjectManager $manager)
     {
+
         $faker = Factory::create();
 
         $user = new User();
@@ -33,6 +35,15 @@ class AppFixtures extends Fixture
 
         $manager->persist($user);
 
+        $users[] = $user;
+
+        for ($i = 0; $i < 20; $i++) {
+            $user = new User();
+            $user->setEmail($faker->email)
+                ->setPassword($this->encoder->encodePassword($user, 'passer'));
+            $manager->persist($user);
+            $users[] = $user;
+        }
         for ($i = 0; $i < 20; $i++) {
             $post = new Post();
             $post->setTitle($faker->sentence(6))
@@ -40,8 +51,18 @@ class AppFixtures extends Fixture
                 ->setContent('<p>' . join(',', $faker->paragraphs()) . '</p>');
 
             $manager->persist($post);
-        }
 
-        $manager->flush();
+            for ($j = 0; $j < mt_rand(0, 10); $j++) {
+
+                $likes = new PostLike();
+                $likes->setPost($post)
+                    ->setUser($faker->randomElement($users));
+
+                $manager->persist($likes);
+
+            }
+
+            $manager->flush();
+        }
     }
 }
